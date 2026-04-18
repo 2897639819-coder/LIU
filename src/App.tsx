@@ -33,13 +33,21 @@ export default function App() {
 
   // Transition Helpers
   const goToRecorder = async (newPassageRequested = true) => {
+    setView('RECORDER'); // Switch view immediately for responsiveness
+    
     if (newPassageRequested || !passage) {
+      if (isPassageLoading) return; // Prevent multiple simultaneous fetches
+      
       setIsPassageLoading(true);
-      const p = await fetchAIPassage();
-      setPassage(p);
-      setIsPassageLoading(false);
+      try {
+        const p = await fetchAIPassage();
+        setPassage(p);
+      } catch (err) {
+        console.error("Failed to load passage:", err);
+      } finally {
+        setIsPassageLoading(false);
+      }
     }
-    setView('RECORDER');
   };
 
   const goToResult = (base64: string) => {
@@ -76,10 +84,14 @@ export default function App() {
             passage={passage} 
             isLoading={isPassageLoading}
             onNewPassage={async () => {
+              if (isPassageLoading) return;
               setIsPassageLoading(true);
-              const p = await fetchAIPassage();
-              setPassage(p);
-              setIsPassageLoading(false);
+              try {
+                const p = await fetchAIPassage();
+                setPassage(p);
+              } finally {
+                setIsPassageLoading(false);
+              }
             }}
             onFinish={goToResult} 
             onBack={() => setView('HOME')}
@@ -435,8 +447,22 @@ function ResultView({
       {/* Main Content */}
       <div className="flex flex-col gap-12">
         <div className="artistic-card">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-vermilion text-sm font-bold tracking-[0.2em] uppercase">参考文本</h3>
+            <button onClick={handleTTS} className={`text-xs font-kaiti flex items-center gap-1 px-3 py-1 border border-vermilion/30 rounded-full hover:bg-vermilion hover:text-white transition-all ${isSynthesizing ? 'bg-vermilion text-white' : 'text-vermilion'}`}>
+              <Volume2 className="w-3 h-3" />
+              {isSynthesizing ? '朗读中...' : '标准领读'}
+            </button>
+          </div>
           <p className="text-2xl font-kaiti leading-loose text-justify text-ink/80">
             {passage}
+          </p>
+        </div>
+
+        <div className="artistic-card bg-paper-dark/50 border-dashed">
+          <h3 className="text-ink-muted text-sm font-bold tracking-[0.2em] mb-4 uppercase">AI 识别结果</h3>
+          <p className="text-xl font-kaiti leading-relaxed text-ink/60 italic">
+            {evaluation.transcription || "（未识别到清晰语音）"}
           </p>
         </div>
 
@@ -484,10 +510,9 @@ function ResultView({
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-auto">
-          <button onClick={handleTTS} className={`btn-art ${isSynthesizing ? 'bg-vermilion text-white' : ''}`}>听AI读</button>
           <button onClick={onRetry} className="btn-art">再试一次</button>
           <button onClick={onNewPassage} className="btn-art">换个段落</button>
-          <button className="btn-art btn-art-primary">分享成绩</button>
+          <button className="btn-art btn-art-primary col-span-2">分享成绩</button>
         </div>
       </aside>
     </motion.div>

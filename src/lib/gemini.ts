@@ -28,6 +28,7 @@ export interface EvaluationResult {
   clarity: number;
   emotion: number;
   advice: string;
+  transcription: string;
 }
 
 /**
@@ -78,12 +79,15 @@ ${passageText}
 
 【评测标准】
 1. 朗诵流畅程度：考察语速稳定性、气息支点、连读处理及停连的艺术性。
-2. 发音标准程度：严扣声韵调，识别方言干扰，指出具体的纠音建议。
-3. 吐字清晰程度：考察字头、字腹、字尾的归韵，识别吃字或含糊现象。
+2. 发音标准程度：严扣声韵调。请先在心中对语音进行转写，核对是否完整读出了参考文本中的每一个词，识别方言干扰并提供纠音建议。
+3. 吐字清晰程度：考察字头、字腹、字尾的归韵。请排除环境底噪干扰，专注于人声评价。
 4. 情感饱满程度：评估语调的抑扬顿挫是否与文本意境契合，共情能力如何。
+
+【由于录音环境可能存在底噪或设备录音质量限制，请采取“内容优先”的评分策略：只要用户读音清晰可辨且内容完整准确，不应因录音音质原因给予低分。评分应具有一定的鼓励性，除非出现明显的漏读、错读或严重的情感缺失。】
 
 【输出要求（严禁套话）】
 - JSON 格式返回。
+- transcription 字段：请提供你听到的用户朗读的文字内容（即语音转文字结果）。
 - advice 字段必须包含以下三部分（总字数建议200字以上）：
   1. 【优点分析】：发掘用户在音色、节奏或某个具体字眼处理上的闪光点。
   2. 【具体不足】：必须列举录音中表现不佳的特定词汇或句子，并说明原因（如：某处声调偏高、某字气息不稳、某句情感过于直白）。
@@ -114,9 +118,10 @@ ${passageText}
             accuracy: { type: Type.NUMBER },
             clarity: { type: Type.NUMBER },
             emotion: { type: Type.NUMBER },
-            advice: { type: Type.STRING }
+            advice: { type: Type.STRING },
+            transcription: { type: Type.STRING }
           },
-          required: ["overall", "fluency", "accuracy", "clarity", "emotion", "advice"]
+          required: ["overall", "fluency", "accuracy", "clarity", "emotion", "advice", "transcription"]
         }
       }
     });
