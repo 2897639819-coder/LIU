@@ -1,0 +1,6 @@
+{
+  "name": "琅琅 - AI 汉语朗诵测评",
+  "description": "基于 Gemini 2.0 Flash 的智能汉语朗诵评测系统，提供实时评分与专业建议。",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}

@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #F3EFE6;
+  --color-ink: #2B2B2B;
+  --color-ink-muted: #6B6B6B;
+  --color-vermilion: #C43C3C;
+  --color-gold: #D4AF37;
+  --color-advice-bg: #EAE3D5;
+  
+  --font-kaiti: "STKaiti", "华文楷体", "KaiTi", serif;
+  --font-serif: "Georgia", "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans leading-relaxed min-h-screen overflow-x-hidden;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(43, 43, 43, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(196, 60, 60, 0.03) 0%, transparent 35%),
+      radial-gradient(circle at 50% 50%, rgba(180, 160, 140, 0.08) 0%, transparent 60%);
+  }
+
+  h1, h2, h3 {
+    @apply font-kaiti;
+  }
+}
+
+/* Utilities */
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Vertical Branding Rail */
+.branding-rail {
+  @apply fixed left-0 top-0 bottom-0 w-[120px] p-10 flex flex-col justify-between border-r border-ink/10 select-none;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.branding-rail h1 {
+  @apply text-5xl tracking-[0.2em] font-bold;
+}
+
+.branding-rail .tagline {
+  @apply text-sm tracking-[0.3em] text-ink-muted uppercase;
+}
+
+/* Artistic Passage Card */
+.artistic-card {
+  @apply relative bg-white/40 backdrop-blur-md p-10 border border-ink/5 shadow-sm;
+}
+
+.artistic-card::before, .artistic-card::after {
+  content: '';
+  @apply absolute top-0 bottom-0 w-5 border-t border-b border-ink;
+}
+
+.artistic-card::before {
+  @apply left-0 border-l border-ink;
+}
+
+.artistic-card::after {
+  @apply right-0 border-r border-ink;
+}
+
+/* Advice Card */
+.advice-card {
+  @apply bg-advice-bg p-6 border border-dashed border-ink-muted rounded-sm shadow-inner;
+}
+
+/* Buttons */
+.btn-art {
+  @apply px-4 py-3 border border-ink bg-transparent font-kaiti text-sm transition-all duration-300 hover:bg-ink hover:text-white active:scale-95 text-center;
+}
+
+.btn-art-primary {
+  @apply bg-vermilion border-vermilion text-white hover:bg-vermilion/90 hover:border-vermilion/90;
+}
+
+/* Result Scoring */
+.score-hero {
+  @apply flex items-baseline justify-center gap-2;
+}
+
+.score-hero .val {
+  @apply font-serif text-[140px] font-bold text-vermilion leading-none;
+}
+
+.score-hero .label {
+  @apply text-2xl text-ink-muted;
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-paper;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-ink/20 rounded-full hover:bg-ink/40;
+}
+
