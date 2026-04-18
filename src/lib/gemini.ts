@@ -8,7 +8,17 @@ const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 export const FALLBACK_PASSAGES = [
   "燕子去了，有再来的时候；杨柳枯了，有再青的时候；桃花谢了，有再开的时候。但是，聪明的，你告诉我，我们的日子为什么一去不复返呢？",
-  "秋天的后园。秋蝉的衰弱的残声，还在树叶茂密处挣扎。青翠的竹叶，由于这声响，似乎都要落下来。我感到了那种迫近的凉意。"
+  "秋天的后园。秋蝉的衰弱的残声，还在树叶茂密处挣扎。青翠的竹叶，由于这声响，似乎都要落下来。我感到了那种迫近的凉意。",
+  "江南的雪，可是滋润美艳之至了；那是还在隐约着的青春的消息，是极壮健的处子的皮肤。雪野中有血红的宝珠山茶，白中隐青的单瓣梅花。",
+  "时间对于我，正如拿在手中的金钱一样，用掉一分便少一分。我不知道我的一生中，究竟还有多少这种可以随意选用的金钱。",
+  "月光如流水一般，静静地泻在这一片叶子和花上。薄薄的青雾浮起在荷塘里。叶子和花仿佛在牛乳中洗过一样；又像笼着轻纱的梦。",
+  "我也许就在那儿，在一处荒凉的、被遗忘的角落，像一棵树一样，深深地扎下根。不管风吹雨打，我都不离开这块土地。",
+  "这北方的大地，在春天里，总是要经历一番痛苦的挣扎。那从北冰洋刮来的寒风，还要在那儿徘徊不去，仿佛要守住它最后的阵地。",
+  "我们要给我们的心留一点空白。在繁忙的生活中，在紧张的工作中，在各种各样的压力下，我们要学会给自己的心留一点闲暇。",
+  "那是一个夏天的午后，太阳火辣辣地照着大地。蝉儿在树上不停地叫着，仿佛在诉说着夏天。我坐在窗前，看着窗外的风景。",
+  "人生是一场漫长的修行。在这场修行中，我们会遇到各种各样的人，经历各种各样的事。我们要学会从这些经历中吸取教训，不断成长。",
+  "在这个世界上，有一种力量，它是无形的，但它却能改变一切。那就是爱。爱能温暖人心，能化解仇恨，能给人带来希望。",
+  "海浪不停地拍打着沙滩，发出‘哗哗’的声音。那是大海在诉说着它的故事。我站在海边，感受着海风的吹拂，心情格外舒畅。"
 ];
 
 export interface EvaluationResult {
@@ -26,29 +36,34 @@ export interface EvaluationResult {
 export async function fetchAIPassage(): Promise<string> {
   const themes = ["自然山水", "家乡思念", "人生感悟", "四季流转", "生活百态", "童年往事"];
   const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+  const authors = ["鲁迅", "朱自清", "老舍", "沈从文", "萧红", "郁达夫", "张爱玲", "冰心", "巴金", "徐志摩"];
+  const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
   
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: [{
         parts: [{
           text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
+目标作家倾向：【${randomAuthor}】
 当前场景主题：【${randomTheme}】
 要求：
-- 严格选自鲁迅、朱自清、老舍、沈从文、萧红、郁达夫、张爱玲等著名作家的真实作品。
-- 必须是真实存在的文学段落，严禁AI原创。
-- 请避开最常见的教科书段落（如《荷塘月色》开头、《给我的孩子》等），尽量挖掘具有文学张力和情感色彩的冷门佳句。
-- 语言需具备节奏感，适合朗诵测评。
+- 严格选自中国近现代著名作家的真实作品。
+- 必须是真实存在的文学段落，严禁AI原创或随意拼凑。
+- 请挖掘具有文学张力和情感色彩的佳句，语言需具备节奏感，适合朗诵测评。
 - 仅返回段落原文，不要包含标题、作者、引号或任何说明文字。`
         }]
       }]
     });
     
     const text = response.text || "";
-    return text.trim() || FALLBACK_PASSAGES[0];
+    if (!text.trim()) throw new Error("Empty AI response");
+    return text.trim();
   } catch (error) {
-    console.error("Failed to fetch AI passage:", error);
-    return FALLBACK_PASSAGES[Math.floor(Math.random() * FALLBACK_PASSAGES.length)];
+    console.error("Gemini AI Calling Error (Passage):", error);
+    // Return a random selection from a larger pool to fix "fixed segments" issue
+    const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
+    return FALLBACK_PASSAGES[randomIndex];
   }
 }
 
@@ -77,7 +92,7 @@ ${passageText}
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: [{
         parts: [
           { text: prompt },
