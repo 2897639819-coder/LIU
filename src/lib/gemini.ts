@@ -29,6 +29,7 @@ export interface EvaluationResult {
   emotion: number;
   advice: string;
   transcription: string;
+  speechDetected: boolean;
 }
 
 /**
@@ -42,7 +43,7 @@ export async function fetchAIPassage(): Promise<string> {
   
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest",
       contents: [{
         parts: [{
           text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
@@ -62,7 +63,6 @@ export async function fetchAIPassage(): Promise<string> {
     return text.trim();
   } catch (error) {
     console.error("Gemini AI Calling Error (Passage):", error);
-    // Return a random selection from a larger pool to fix "fixed segments" issue
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
@@ -74,29 +74,35 @@ export async function fetchAIPassage(): Promise<string> {
 export async function evaluateAudio(audioBase64: string, passageText: string): Promise<EvaluationResult> {
   const prompt = `你是一位享誉国际的汉语语音评测与艺术朗诵指导专家。请对用户的录音进行深度、专业且具有指导意义的评测。
 
+【重要前置检查】
+1. 首先判断录音中是否存在有效的人声朗读。
+2. 如果录音只有静音、背景噪音，或者人声内容完全与参考文本无关，请将 speechDetected 设为 false，并将各项分数设为 0，然后在 advice 中告知用户未检测到有效朗读。
+3. 只有在检测到与参考文本相关的有效朗读时，才将 speechDetected 设为 true 并进行后续详细评分。
+
 【参考文本】
 ${passageText}
 
 【评测标准】
 1. 朗诵流畅程度：考察语速稳定性、气息支点、连读处理及停连的艺术性。
-2. 发音标准程度：严扣声韵调。请先在心中对语音进行转写，核对是否完整读出了参考文本中的每一个词，识别方言干扰并提供纠音建议。
+2. 发音标准程度：严扣声韵调。请先在心中对语音进行转写，核对是否完整读出了参考文本中的每一个词。
 3. 吐字清晰程度：考察字头、字腹、字尾的归韵。请排除环境底噪干扰，专注于人声评价。
-4. 情感饱满程度：评估语调的抑扬顿挫是否与文本意境契合，共情能力如何。
-
-【由于录音环境可能存在底噪或设备录音质量限制，请采取“内容优先”的评分策略：只要用户读音清晰可辨且内容完整准确，不应因录音音质原因给予低分。评分应具有一定的鼓励性，除非出现明显的漏读、错读或严重的情感缺失。】
+4. 情感饱满程度：评估语调的抑扬顿挫是否与文本意境契合。
 
 【输出要求（严禁套话）】
 - JSON 格式返回。
-- transcription 字段：请提供你听到的用户朗读的文字内容（即语音转文字结果）。
-- advice 字段必须包含以下三部分（总字数建议200字以上）：
-  1. 【优点分析】：发掘用户在音色、节奏或某个具体字眼处理上的闪光点。
-  2. 【具体不足】：必须列举录音中表现不佳的特定词汇或句子，并说明原因（如：某处声调偏高、某字气息不稳、某句情感过于直白）。
-  3. 【专业建议】：提供具体的训练方法（如：提颧伸唇练习、气息控制方法、情感投射技巧）。
+- speechDetected: (boolean) 是否检测到有效人声朗读。
+- transcription: (string) 你听到的用户朗读的文字内容（即语音转文字结果）。
+- advice 字段：
+  * 若 speechDetected 为 false，请说明具体原因（如：静音、底噪过大、内容不匹配）。
+  * 若为 true，必须包含以下三部分（总字数建议200字以上）：
+    1. 【优点分析】：发掘用户在音色、节奏或某个具体字眼处理上的闪光点。
+    2. 【具体不足】：必须列举录音中表现不佳的特定词汇或句子，并说明原因（如：某处声调偏高、某字气息不稳、某句情感过于直白）。
+    3. 【专业建议】：提供具体的训练方法（如：提颧伸唇练习、气息控制方法、情感投射技巧）。
 - 仅返回 JSON，不要任何额外文本。`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest",
       contents: [{
         parts: [
           { text: prompt },
@@ -119,9 +125,10 @@ ${passageText}
             clarity: { type: Type.NUMBER },
             emotion: { type: Type.NUMBER },
             advice: { type: Type.STRING },
-            transcription: { type: Type.STRING }
+            transcription: { type: Type.STRING },
+            speechDetected: { type: Type.BOOLEAN }
           },
-          required: ["overall", "fluency", "accuracy", "clarity", "emotion", "advice", "transcription"]
+          required: ["overall", "fluency", "accuracy", "clarity", "emotion", "advice", "transcription", "speechDetected"]
         }
       }
     });
@@ -129,7 +136,7 @@ ${passageText}
     const resultText = response.text || "{}";
     return JSON.parse(resultText) as EvaluationResult;
   } catch (error) {
-    console.error("Evaluation failed:", error);
+    console.error("Evaluation failed details:", error);
     throw error;
   }
 }

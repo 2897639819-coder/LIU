@@ -385,10 +385,13 @@ function ResultView({
     const evaluate = async () => {
       try {
         setError(null);
+        // Add a small delay to ensure audio blob is ready
+        await new Promise(resolve => setTimeout(resolve, 500));
         const res = await evaluateAudio(audioBase64, passage);
         setEvaluation(res);
-      } catch (err) {
-        setError("AI 评测暂时开小差了，请重试。");
+      } catch (err: any) {
+        console.error("Evaluation error object:", err);
+        setError(`AI 评测暂时开小差了（${err?.message || "未知错误"}），请重试。`);
       }
     };
     evaluate();
@@ -433,6 +436,35 @@ function ResultView({
         <div className="z-10 flex flex-col items-center gap-6">
           <Loader2 className="w-12 h-12 text-ink animate-spin" />
           <p className="font-kaiti text-2xl tracking-[0.2em] text-ink animate-pulse">AI 先生正在聆听...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!evaluation.speechDetected) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-10 max-w-2xl mx-auto text-center font-kaiti">
+        <div className="mb-8 p-10 bg-vermilion/5 border border-dashed border-vermilion/30 rounded-lg">
+          <AlertCircle className="w-16 h-16 text-vermilion mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-ink mb-4">未检测到有效朗读</h2>
+          <p className="text-xl text-ink-muted leading-loose mb-2">
+            AI 先生并未在录音中识别出您的诵读声音。
+          </p>
+          <p className="text-base text-vermilion italic mb-8">
+            原因指引：{evaluation.advice}
+          </p>
+          <div className="flex flex-col items-center gap-4 text-sm text-ink-muted/60">
+            <p>提示：建议在安静环境录音，并确保麦克风已开启。</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-4">
+          <button onClick={onRetry} className="btn-art flex items-center gap-2">
+            <RotateCcw className="w-5 h-5" /> 重新录制
+          </button>
+          <button onClick={onNewPassage} className="btn-art">
+            换个段落
+          </button>
         </div>
       </div>
     );
