@@ -66,14 +66,49 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden selection:bg-vermilion/20 selection:text-vermilion">
+    <div className="min-h-screen relative overflow-hidden selection:bg-vermilion/20 selection:text-vermilion bg-paper">
+      {/* Background Ink Wash Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-20">
+        <motion.img 
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 0.15, scale: 1 }}
+          transition={{ duration: 3 }}
+          src="https://picsum.photos/seed/ink-wash-landscape/1920/1080?grayscale&blur=2" 
+          alt=""
+          className="absolute -top-20 -left-20 w-[60%] h-auto rotate-[-10deg] object-contain"
+          referrerPolicy="no-referrer"
+        />
+        <motion.img 
+          initial={{ opacity: 0, scale: 1.1 }}
+          animate={{ opacity: 0.1, scale: 1 }}
+          transition={{ duration: 3, delay: 0.5 }}
+          src="https://picsum.photos/seed/bamboo-ink/800/800?grayscale" 
+          alt=""
+          className="absolute -bottom-40 -right-20 w-[40%] h-auto rotate-[15deg] object-contain"
+          referrerPolicy="no-referrer"
+        />
+        
+        {/* Additional Floating Ink Splats */}
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 ink-splash animate-pulse" />
+        <div className="absolute bottom-1/3 left-10 w-48 h-48 ink-splash rotate-45" />
+      </div>
+
       <BrandingRail />
       
-      {/* Decorative Seal */}
-      <div className="fixed top-10 right-10 w-20 h-20 border-[3px] border-vermilion/60 rounded flex items-center justify-center rotate-[15deg] pointer-events-none z-50">
-        <div className="border border-vermilion/40 p-1">
-          <span className="font-kaiti text-vermilion text-2xl font-bold leading-tight">优选</span>
-        </div>
+      {/* Decorative Seal (Stamp) */}
+      <div className="fixed top-10 right-10 w-24 h-24 pointer-events-none z-50">
+        <motion.div 
+          initial={{ scale: 0.8, rotate: -15, opacity: 0 }}
+          animate={{ scale: 1, rotate: 10, opacity: 0.8 }}
+          className="w-full h-full border-4 border-double border-vermilion rounded-sm flex items-center justify-center relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-vermilion/5" />
+          <div className="border border-vermilion/50 p-2 text-center">
+            <span className="font-kaiti text-vermilion text-3xl font-black leading-tight tracking-tighter">
+              琅琅<br/>正品
+            </span>
+          </div>
+        </motion.div>
       </div>
 
       <AnimatePresence mode="wait">
@@ -129,7 +164,7 @@ function HomeView({ onStart }: { onStart: () => void | Promise<void>; key?: stri
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: i * 0.15 }}
-            className={`font-kaiti text-5xl md:text-7xl ${char === '汉' ? 'mt-8' : ''} leading-none`}
+            className="font-kaiti text-5xl md:text-7xl leading-none"
             style={{ writingMode: 'vertical-rl' }}
           >
             {char}
@@ -391,7 +426,11 @@ function ResultView({
         setEvaluation(res);
       } catch (err: any) {
         console.error("Evaluation error object:", err);
-        setError(`AI 评测暂时开小差了（${err?.message || "未知错误"}），请重试。`);
+        if (err?.message === "QUOTA_EXCEEDED") {
+          setError("今日的 AI 免费体验额度已达上限。AI 先生正在闭目养神，请稍后再试，或在 Vercel 环境变量中配置您自己的 Gemini API Key 以获得无限制体验。");
+        } else {
+          setError(`AI 评测暂时开小差了，请重试。（技术详情：${err?.message || "未知连接错误"}）`);
+        }
       }
     };
     evaluate();

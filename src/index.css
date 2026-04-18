@@ -17,6 +17,8 @@
   body {
     @apply bg-paper text-ink font-sans leading-relaxed min-h-screen overflow-x-hidden;
     background-image: 
+      /* Paper texture */
+      url("https://www.transparenttextures.com/patterns/natural-paper.png"),
       radial-gradient(circle at 10% 20%, rgba(43, 43, 43, 0.05) 0%, transparent 40%),
       radial-gradient(circle at 90% 80%, rgba(196, 60, 60, 0.03) 0%, transparent 35%),
       radial-gradient(circle at 50% 50%, rgba(180, 160, 140, 0.08) 0%, transparent 60%);
@@ -87,6 +89,15 @@
 
 .score-hero .val {
   @apply font-serif text-[140px] font-bold text-vermilion leading-none;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+}
+
+/* Ink Splatter Ornament */
+.ink-splash {
+  mask-image: url("https://picsum.photos/seed/ink-splash/400/400?grayscale");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  @apply bg-ink opacity-5 pointer-events-none;
 }
 
 .score-hero .label {

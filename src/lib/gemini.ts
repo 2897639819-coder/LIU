@@ -43,7 +43,7 @@ export async function fetchAIPassage(): Promise<string> {
   
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3-flash-preview",
       contents: [{
         parts: [{
           text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
@@ -62,7 +62,7 @@ export async function fetchAIPassage(): Promise<string> {
     if (!text.trim()) throw new Error("Empty AI response");
     return text.trim();
   } catch (error) {
-    console.error("Gemini AI Calling Error (Passage):", error);
+    console.warn("Gemini AI API Quota or Connection Error (Passage):", error);
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
@@ -102,7 +102,7 @@ ${passageText}
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-3-flash-preview",
       contents: [{
         parts: [
           { text: prompt },
@@ -135,8 +135,14 @@ ${passageText}
 
     const resultText = response.text || "{}";
     return JSON.parse(resultText) as EvaluationResult;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Evaluation failed details:", error);
+    
+    // Explicitly check for quota exceeded error (429)
+    if (error?.message?.includes('429') && error?.message?.includes('quota')) {
+      throw new Error("QUOTA_EXCEEDED");
+    }
+    
     throw error;
   }
 }
