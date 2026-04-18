@@ -101,7 +101,7 @@ export default function App() {
 
 // --- Views ---
 
-function HomeView({ onStart, key }: { onStart: () => void | Promise<void>; key?: string }) {
+function HomeView({ onStart }: { onStart: () => void | Promise<void>; key?: string }) {
   const title = "欢迎来到汉语朗诵测试";
   return (
     <motion.div 
@@ -144,8 +144,7 @@ function RecorderView({
   isLoading, 
   onNewPassage, 
   onFinish, 
-  onBack,
-  key
+  onBack
 }: { 
   passage: string;
   isLoading: boolean;
@@ -357,8 +356,7 @@ function ResultView({
   passage, 
   audioBase64, 
   onRetry, 
-  onNewPassage,
-  key
+  onNewPassage
 }: { 
   passage: string;
   audioBase64: string;

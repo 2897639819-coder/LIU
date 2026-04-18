@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+// Use import.meta.env for standard Vite deployments (Vercel, etc.) 
+// and process.env for the AI Studio preview environment.
+const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
