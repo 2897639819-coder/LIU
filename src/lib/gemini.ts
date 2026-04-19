@@ -1,23 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Safe environment variable retrieval for both local and production (Vercel) environments.
-const getApiKey = () => {
-  // Try Vite's import.meta.env first (standard for Vite client-side)
-  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-  if (viteKey) return viteKey;
-
-  // Fallback to process.env (for AI Studio preview environment)
-  try {
-    const processKey = process.env.GEMINI_API_KEY;
-    if (processKey) return processKey;
-  } catch (e) {
-    // process might not be defined in some browser environments
-  }
-  
-  return "";
-};
-
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
+// Strictly follow the gemini-api skill's recommendation for React (Vite)
+// in the Antigravity/AI Studio Build environment.
+const ai = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || "" 
+});
 
 export const FALLBACK_PASSAGES = [
   "燕子去了，有再来的时候；杨柳枯了，有再青的时候；桃花谢了，有再开的时候。但是，聪明的，你告诉我，我们的日子为什么一去不复返呢？",
