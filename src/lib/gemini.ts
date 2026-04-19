@@ -1,9 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use the standard pattern for React (Vite) as defined in system skills. 
-// Vercel deployment requires the key to be available in the environment.
+// Strictly follow the gemini-api skill's recommendation for React (Vite)
+// with additional robustness for production deployments.
+const getApiKey = () => {
+    // 1. Check process.env (mapped in vite.config.ts)
+    if (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) {
+        return process.env.GEMINI_API_KEY;
+    }
+    // 2. Check import.meta.env as fallback
+    if ((import.meta as any).env?.VITE_GEMINI_API_KEY) {
+        return (import.meta as any).env.VITE_GEMINI_API_KEY;
+    }
+    return "";
+};
+
 const ai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || "" 
+  apiKey: getApiKey()
 });
 
 export const FALLBACK_PASSAGES = [
