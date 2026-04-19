@@ -1,10 +1,23 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use import.meta.env for standard Vite deployments (Vercel, etc.) 
-// and process.env for the AI Studio preview environment.
-const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+// Safe environment variable retrieval for both local and production (Vercel) environments.
+const getApiKey = () => {
+  // Try Vite's import.meta.env first (standard for Vite client-side)
+  const viteKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  if (viteKey) return viteKey;
 
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  // Fallback to process.env (for AI Studio preview environment)
+  try {
+    const processKey = process.env.GEMINI_API_KEY;
+    if (processKey) return processKey;
+  } catch (e) {
+    // process might not be defined in some browser environments
+  }
+  
+  return "";
+};
+
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
 export const FALLBACK_PASSAGES = [
   "燕子去了，有再来的时候；杨柳枯了，有再青的时候；桃花谢了，有再开的时候。但是，聪明的，你告诉我，我们的日子为什么一去不复返呢？",
@@ -41,12 +54,12 @@ export async function fetchAIPassage(): Promise<string> {
   const authors = ["鲁迅", "朱自清", "老舍", "沈从文", "萧红", "郁达夫", "张爱玲", "冰心", "巴金", "徐志摩"];
   const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
   
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: [{
-        parts: [{
-          text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
+  // Create the fetch promise
+  const fetchPromise = ai.models.generateContent({
+    model: "gemini-1.5-flash-latest", // Use the most stable production alias
+    contents: [{
+      parts: [{
+        text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
 目标作家倾向：【${randomAuthor}】
 当前场景主题：【${randomTheme}】
 要求：
@@ -54,15 +67,25 @@ export async function fetchAIPassage(): Promise<string> {
 - 必须是真实存在的文学段落，严禁AI原创或随意拼凑。
 - 请挖掘具有文学张力和情感色彩的佳句，语言需具备节奏感，适合朗诵测评。
 - 仅返回段落原文，不要包含标题、作者、引号或任何说明文字。`
-        }]
       }]
-    });
+    }]
+  });
+
+  try {
+    // Race against a 10-second timeout to prevent UI hanging
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error("TIMEOUT")), 10000)
+    );
+
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
     
-    const text = response.text || "";
-    if (!text.trim()) throw new Error("Empty AI response");
-    return text.trim();
+    if (!response || !response.text) throw new Error("Invalid response");
+    
+    const text = response.text.trim();
+    if (!text) throw new Error("Empty response");
+    return text;
   } catch (error) {
-    console.warn("Gemini AI API Quota or Connection Error (Passage):", error);
+    console.warn("Passage Fetch Strategy: Falling back to local library due to:", error);
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
