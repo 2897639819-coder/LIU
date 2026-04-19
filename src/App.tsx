@@ -18,9 +18,17 @@ type ViewState = 'HOME' | 'RECORDER' | 'RESULT';
 
 function BrandingRail() {
   return (
-    <aside className="branding-rail hidden lg:flex">
-      <h1>琅琅测评</h1>
-      <div className="tagline">AI 汉语朗诵测评系统</div>
+    <aside className="branding-rail hidden lg:flex bg-ink/5 relative">
+      <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+        <img 
+          src="https://picsum.photos/seed/brush-stroke-v/200/1000?grayscale" 
+          alt="" 
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+      </div>
+      <h1 className="relative z-10">琅琅测评</h1>
+      <div className="tagline relative z-10">AI 汉语朗诵测评系统</div>
     </aside>
   );
 }
@@ -68,29 +76,61 @@ export default function App() {
   return (
     <div className="min-h-screen relative overflow-hidden selection:bg-vermilion/20 selection:text-vermilion bg-paper">
       {/* Background Ink Wash Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-20">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+        {/* Top-Left: Plum Blossom (Mei) */}
         <motion.img 
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 0.15, scale: 1 }}
-          transition={{ duration: 3 }}
-          src="https://picsum.photos/seed/ink-wash-landscape/1920/1080?grayscale&blur=2" 
+          initial={{ opacity: 0, x: -50, scale: 1.1 }}
+          animate={{ opacity: 0.2, x: 0, scale: 1 }}
+          transition={{ duration: 4 }}
+          src="https://picsum.photos/seed/plum-blossom-ink/1000/1000?grayscale" 
           alt=""
-          className="absolute -top-20 -left-20 w-[60%] h-auto rotate-[-10deg] object-contain"
-          referrerPolicy="no-referrer"
-        />
-        <motion.img 
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 0.1, scale: 1 }}
-          transition={{ duration: 3, delay: 0.5 }}
-          src="https://picsum.photos/seed/bamboo-ink/800/800?grayscale" 
-          alt=""
-          className="absolute -bottom-40 -right-20 w-[40%] h-auto rotate-[15deg] object-contain"
+          className="absolute -top-20 -left-20 w-[45%] h-auto rotate-[-15deg] object-contain opacity-20 filter contrast-125"
           referrerPolicy="no-referrer"
         />
         
-        {/* Additional Floating Ink Splats */}
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 ink-splash animate-pulse" />
-        <div className="absolute bottom-1/3 left-10 w-48 h-48 ink-splash rotate-45" />
+        {/* Bottom-Right: Bamboo (Zhu) */}
+        <motion.img 
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          animate={{ opacity: 0.25, y: 0, scale: 1 }}
+          transition={{ duration: 4, delay: 0.5 }}
+          src="https://picsum.photos/seed/bamboo-ink-forest/800/1200?grayscale" 
+          alt=""
+          className="absolute -bottom-40 -right-20 w-[35%] h-auto rotate-[10deg] object-contain opacity-25"
+          referrerPolicy="no-referrer"
+        />
+
+        {/* Top-Right: Orchid (Lan) */}
+        <motion.img 
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 0.15, x: 0 }}
+          transition={{ duration: 5, delay: 1 }}
+          src="https://picsum.photos/seed/orchid-ink-painting/600/600?grayscale" 
+          alt=""
+          className="absolute top-1/4 -right-10 w-[20%] h-auto rotate-[45deg] object-contain opacity-15"
+          referrerPolicy="no-referrer"
+        />
+
+        {/* Bottom-Left: Chrysanthemum (Ju) */}
+        <motion.img 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 0.15, y: 0 }}
+          transition={{ duration: 5, delay: 1.5 }}
+          src="https://picsum.photos/seed/chrysanthemum-ink/600/600?grayscale" 
+          alt=""
+          className="absolute bottom-1/4 -left-10 w-[25%] h-auto rotate-[-30deg] object-contain opacity-15"
+          referrerPolicy="no-referrer"
+        />
+        
+        {/* Subtle Middle Ground Ink Landscape */}
+        <motion.img 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.1 }}
+          transition={{ duration: 6 }}
+          src="https://picsum.photos/seed/ink-mountain-mist/1920/1080?grayscale&blur=5" 
+          alt=""
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-auto object-cover opacity-10"
+          referrerPolicy="no-referrer"
+        />
       </div>
 
       <BrandingRail />

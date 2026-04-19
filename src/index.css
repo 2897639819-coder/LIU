@@ -94,10 +94,10 @@
 
 /* Ink Splatter Ornament */
 .ink-splash {
-  mask-image: url("https://picsum.photos/seed/ink-splash/400/400?grayscale");
+  mask-image: url("https://picsum.photos/seed/ink-splash-heavy/400/400?grayscale");
   mask-size: contain;
   mask-repeat: no-repeat;
-  @apply bg-ink opacity-5 pointer-events-none;
+  @apply bg-ink opacity-15 pointer-events-none;
 }
 
 .score-hero .label {
