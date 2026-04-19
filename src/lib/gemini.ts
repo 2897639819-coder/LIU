@@ -56,13 +56,13 @@ export async function fetchAIPassage(): Promise<string> {
   
   // Create the fetch promise
   const fetchPromise = ai.models.generateContent({
-    model: "gemini-1.5-flash", // Using the standard stable alias
+    model: "gemini-3-flash-preview", // Restoring the most recommended model
     contents: [{
       parts: [{
-        text: `请随机从中国现代文学库（如鲁迅、朱自清、老舍等）中提取一段约80-120字的经典段落，用于汉语朗诵练习。
+        text: `请从中国现代文学库（如鲁迅、朱自清、老舍、沈从文等）中随机提取一段约80-120字的经典文学段落，用于汉语朗诵练习。
 目标作家倾向：【${randomAuthor}】
-当前场景主题：【${randomTheme}】
-要求：仅返回段落原文，不要包含标题、作者、引号或任何说明文字。`
+场景主题：【${randomTheme}】
+要求：仅返回段落原文，严禁AI原创，严禁包含标题、作者、引号或任何说明文字。`
       }]
     }]
   });
@@ -73,17 +73,25 @@ export async function fetchAIPassage(): Promise<string> {
       setTimeout(() => reject(new Error("TIMEOUT")), 8000)
     );
 
-    const result: any = await Promise.race([fetchPromise, timeoutPromise]);
+    const response: any = await Promise.race([fetchPromise, timeoutPromise]);
     
-    // Safety check for candidates and text
-    const candidate = result?.response?.candidates?.[0];
-    const text = candidate?.content?.parts?.[0]?.text?.trim();
+    // Correct method to extract text based on SDK documentation
+    const text = response?.text?.trim();
 
-    if (!text) throw new Error("Invalid response structure");
+    if (!text) {
+      console.warn("API returned empty or invalid response structure:", response);
+      throw new Error("Invalid response content");
+    }
+    
     return text;
-  } catch (error) {
-    console.warn("Passage Fetch Strategy: Falling back to local library due to API failure/timeout.", error);
-    // Ensure we pick a truly random one that isn't the first one of the list
+  } catch (error: any) {
+    if (error?.message?.includes('429')) {
+      console.error("Gemini API Quota Exceeded (429). Falling back to local library.");
+    } else {
+      console.warn("Passage Fetch Strategy: Falling back to local library due to API failure/timeout.", error);
+    }
+    
+    // Ensure we pick a truly random one from the library
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
