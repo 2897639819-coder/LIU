@@ -1,9 +1,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Strictly follow the gemini-api skill's recommendation for React (Vite)
-// in the Antigravity/AI Studio Build environment.
+// Use the standard pattern for React (Vite) as defined in system skills. 
+// Vercel deployment requires the key to be available in the environment.
 const ai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || "" 
+  apiKey: process.env.GEMINI_API_KEY || "" 
 });
 
 export const FALLBACK_PASSAGES = [
@@ -41,44 +41,28 @@ export async function fetchAIPassage(): Promise<string> {
   const authors = ["鲁迅", "朱自清", "老舍", "沈从文", "萧红", "郁达夫", "张爱玲", "冰心", "巴金", "徐志摩"];
   const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
   
-  // Create the fetch promise
-  const fetchPromise = ai.models.generateContent({
-    model: "gemini-3-flash-preview", // Restoring the most recommended model
-    contents: [{
-      parts: [{
-        text: `请从中国现代文学库（如鲁迅、朱自清、老舍、沈从文等）中随机提取一段约80-120字的经典文学段落，用于汉语朗诵练习。
+  try {
+    // Calling the API without a race-timeout to allow it enough time on slow networks.
+    // Use gemini-3-flash-preview as recommended for basic text tasks.
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{
+        parts: [{
+          text: `请从中国现代文学库（如鲁迅、朱自清、老舍、沈从文等）中随机提取一段约80-120字的经典文学段落，用于汉语朗诵练习。
 目标作家倾向：【${randomAuthor}】
 场景主题：【${randomTheme}】
 要求：仅返回段落原文，严禁AI原创，严禁包含标题、作者、引号或任何说明文字。`
+        }]
       }]
-    }]
-  });
+    });
 
-  try {
-    // Race against a 8-second timeout to prevent UI hanging
-    const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error("TIMEOUT")), 8000)
-    );
-
-    const response: any = await Promise.race([fetchPromise, timeoutPromise]);
-    
-    // Correct method to extract text based on SDK documentation
-    const text = response?.text?.trim();
-
-    if (!text) {
-      console.warn("API returned empty or invalid response structure:", response);
-      throw new Error("Invalid response content");
-    }
-    
+    const text = response.text?.trim();
+    if (!text) throw new Error("Empty AI response");
     return text;
   } catch (error: any) {
-    if (error?.message?.includes('429')) {
-      console.error("Gemini API Quota Exceeded (429). Falling back to local library.");
-    } else {
-      console.warn("Passage Fetch Strategy: Falling back to local library due to API failure/timeout.", error);
-    }
+    console.error("Gemini API Error (Passage):", error);
     
-    // Ensure we pick a truly random one from the library
+    // Fallback logic for when API fails (quota or network)
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
