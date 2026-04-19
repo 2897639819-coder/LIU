@@ -56,36 +56,34 @@ export async function fetchAIPassage(): Promise<string> {
   
   // Create the fetch promise
   const fetchPromise = ai.models.generateContent({
-    model: "gemini-1.5-flash-latest", // Use the most stable production alias
+    model: "gemini-1.5-flash", // Using the standard stable alias
     contents: [{
       parts: [{
-        text: `请随机生成一段约80-120字的中国现代文学经典段落，用于汉语朗诵练习。
+        text: `请随机从中国现代文学库（如鲁迅、朱自清、老舍等）中提取一段约80-120字的经典段落，用于汉语朗诵练习。
 目标作家倾向：【${randomAuthor}】
 当前场景主题：【${randomTheme}】
-要求：
-- 严格选自中国近现代著名作家的真实作品。
-- 必须是真实存在的文学段落，严禁AI原创或随意拼凑。
-- 请挖掘具有文学张力和情感色彩的佳句，语言需具备节奏感，适合朗诵测评。
-- 仅返回段落原文，不要包含标题、作者、引号或任何说明文字。`
+要求：仅返回段落原文，不要包含标题、作者、引号或任何说明文字。`
       }]
     }]
   });
 
   try {
-    // Race against a 10-second timeout to prevent UI hanging
+    // Race against a 8-second timeout to prevent UI hanging
     const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error("TIMEOUT")), 10000)
+      setTimeout(() => reject(new Error("TIMEOUT")), 8000)
     );
 
-    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    const result: any = await Promise.race([fetchPromise, timeoutPromise]);
     
-    if (!response || !response.text) throw new Error("Invalid response");
-    
-    const text = response.text.trim();
-    if (!text) throw new Error("Empty response");
+    // Safety check for candidates and text
+    const candidate = result?.response?.candidates?.[0];
+    const text = candidate?.content?.parts?.[0]?.text?.trim();
+
+    if (!text) throw new Error("Invalid response structure");
     return text;
   } catch (error) {
-    console.warn("Passage Fetch Strategy: Falling back to local library due to:", error);
+    console.warn("Passage Fetch Strategy: Falling back to local library due to API failure/timeout.", error);
+    // Ensure we pick a truly random one that isn't the first one of the list
     const randomIndex = Math.floor(Math.random() * FALLBACK_PASSAGES.length);
     return FALLBACK_PASSAGES[randomIndex];
   }
